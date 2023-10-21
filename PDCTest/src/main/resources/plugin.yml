@@ -1,0 +1,12 @@
+name: PDCTest
+version: '${version}'
+main: xyz.kyngs.pdctest.PDCTest
+api-version: '1.20'
+
+depends: ["SlimeWorldManager"]
+
+commands:
+  getpdc:
+  setpdc:
+  removepdc:
+  dumppdc:
