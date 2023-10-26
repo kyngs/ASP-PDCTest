@@ -6,6 +6,7 @@ group = 'xyz.kyngs.pdctest'
 version = '0.1.0'
 
 repositories {
+    mavenLocal();
     mavenCentral()
     maven {
         name = "papermc-repo"

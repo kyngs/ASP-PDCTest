@@ -2,6 +2,7 @@ package xyz.kyngs.pdctest;
 
 import com.infernalsuite.aswm.api.SlimePlugin;
 import com.infernalsuite.aswm.api.exceptions.*;
+import com.infernalsuite.aswm.api.world.SlimeWorld;
 import com.infernalsuite.aswm.api.world.properties.SlimePropertyMap;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
@@ -16,25 +17,28 @@ import java.io.IOException;
 
 public final class PDCTest extends JavaPlugin{
 
+    private SlimeWorld slimeWorld;
+
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-        var world = Bukkit.getWorld("pdctest");
-
+        var container = slimeWorld.getPersistentDataContainer();
         switch (command.getName()) {
             case "setpdc" -> {
-                world.getPersistentDataContainer().set(new NamespacedKey(this, "test"), PersistentDataType.STRING, "test");
+                container.set(new NamespacedKey(this, "test"), PersistentDataType.STRING, "test");
                 sender.sendMessage("Set");
             }
             case "getpdc" -> {
-                var pdc = world.getPersistentDataContainer().get(new NamespacedKey(this, "test"), PersistentDataType.STRING);
+                var pdc = container.get(new NamespacedKey(this, "test"), PersistentDataType.STRING);
                 sender.sendMessage(pdc == null ? "null" : pdc);
             }
             case "removepdc" -> {
-                world.getPersistentDataContainer().remove(new NamespacedKey(this, "test"));
+                container.remove(new NamespacedKey(this, "test"));
                 sender.sendMessage("Removed");
             }
             case "dumppdc" -> {
-                world.getPersistentDataContainer().getKeys().forEach(key -> sender.sendMessage(key.toString() + ":" + world.getPersistentDataContainer().get(key, PersistentDataType.STRING)));
+                container.getKeys().forEach(key -> sender.sendMessage(key.toString() + ":" + container.get(key, PersistentDataType.STRING)));
+                sender.sendMessage("End extra PDC, begin extra NBT");
+                sender.sendMessage(slimeWorld.getExtraData().toString());
             }
         }
 
@@ -48,14 +52,20 @@ public final class PDCTest extends JavaPlugin{
         var loader = plugin.getLoader("file");
 
         try {
-            plugin.loadWorld(loader, "pdctest", false, new SlimePropertyMap());
+            slimeWorld = plugin.loadWorld(loader, "pdctest", false, new SlimePropertyMap());
         } catch (UnknownWorldException e) {
             try {
-                plugin.createEmptyWorld(loader, "pdctest", false, new SlimePropertyMap());
+                slimeWorld = plugin.createEmptyWorld(loader, "pdctest", false, new SlimePropertyMap());
             } catch (WorldAlreadyExistsException | IOException ex) {
                 throw new RuntimeException(ex);
             }
         } catch (IOException | CorruptedWorldException | NewerFormatException | WorldLockedException e) {
+            throw new RuntimeException(e);
+        }
+
+        try {
+            plugin.loadWorld(slimeWorld);
+        } catch (UnknownWorldException | WorldLockedException | IOException e) {
             throw new RuntimeException(e);
         }
 
