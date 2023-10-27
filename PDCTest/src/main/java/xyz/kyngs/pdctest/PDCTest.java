@@ -9,6 +9,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
@@ -25,19 +26,25 @@ public final class PDCTest extends JavaPlugin{
         switch (command.getName()) {
             case "setpdc" -> {
                 container.set(new NamespacedKey(this, "test"), PersistentDataType.STRING, "test");
+                if (sender instanceof Player player) {
+                    player.getPersistentDataContainer().set(new NamespacedKey(this, "playertest"), PersistentDataType.STRING, "This is a test tag in a complex tag");
+                    container.set(new NamespacedKey(this, "playertest"), PersistentDataType.TAG_CONTAINER, player.getPersistentDataContainer());
+                }
                 sender.sendMessage("Set");
             }
             case "getpdc" -> {
                 var pdc = container.get(new NamespacedKey(this, "test"), PersistentDataType.STRING);
                 sender.sendMessage(pdc == null ? "null" : pdc);
+                var playerPDC = container.get(new NamespacedKey(this, "playertest"), PersistentDataType.TAG_CONTAINER);
+                sender.sendMessage(playerPDC == null ? "null" : playerPDC.toString());
             }
             case "removepdc" -> {
                 container.remove(new NamespacedKey(this, "test"));
+                container.remove(new NamespacedKey(this, "playertest"));
                 sender.sendMessage("Removed");
             }
             case "dumppdc" -> {
-                container.getKeys().forEach(key -> sender.sendMessage(key.toString() + ":" + container.get(key, PersistentDataType.STRING)));
-                sender.sendMessage("End extra PDC, begin extra NBT");
+                sender.sendMessage("Begin extra NBT");
                 sender.sendMessage(slimeWorld.getExtraData().toString());
             }
         }
